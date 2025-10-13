@@ -57,6 +57,24 @@ while ($row = $result_puestos->fetch_assoc()) {
     $puestos[] = $row;
 }
 
+// Obtener estados para el dropdown de destino
+$sql_estados = "SELECT id_estado, nombre_estado, abreviacion FROM cat_estado WHERE visible = 1 ORDER BY nombre_estado";
+$result_estados = $conn->query($sql_estados);
+$estados = array();
+
+while ($row = $result_estados->fetch_assoc()) {
+    $estados[] = $row;
+}
+
+// Obtener tipo de contrato
+$sql_tipo_contrato = "SELECT id_tipo_contrato, dsc_tipo_contrato FROM cat_tipo_contrato WHERE visible = 1";
+$result_tipo_contrato = $conn->query($sql_tipo_contrato);
+$tipos_contrato = array();
+
+while ($row = $result_tipo_contrato->fetch_assoc()) {
+    $tipos_contrato[] = $row;
+}
+
 // Procesar el formulario cuando se envíe
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Recoger y validar datos del formulario
@@ -76,10 +94,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cuota = $_POST["cuota"] ?: NULL;
     $partida_3710 = $_POST["partida_3710"] ?: NULL;
     $partida_3720 = $_POST["partida_3720"] ?: NULL;
-    $id_municipio = $_POST["id_municipio"];
+    $id_municipio = $_POST["id_municipio"] ?: NULL;
     $partida_total = $_POST["partida_total"] ?: NULL;
     $fecha_registro = date("Y-m-d H:i:s");
-    $id_usuario_registro = $_POST["id_usuario_registro"];
+    $id_usuario_registro = 1; // Valor por defecto
 
     // Insertar datos en la base de datos
     $sql = "INSERT INTO comision (
@@ -190,7 +208,7 @@ $conn->close();
                     <div class="avatar-placeholder">U</div>
                 </div>
                 <div class="user-details">
-                    <p><strong>Usuario Actual:</strong> Nombre del Usuario</p>
+                    <p><strong>Usuario Actual:</strong> Sistema de Comisiones</p>
                 </div>
             </div>
             <a href="index.php" class="back-button">← Regresar</a>
@@ -261,23 +279,29 @@ $conn->close();
             <div class="form-section">
                 <h2>Detalles de la Comisión</h2>
                 <div class="form-group">
-                    <label for="destino">Destino:</label>
-                    <select id="destino" name="destino" onchange="actualizarAsuntoCorto()" required>
-                        <option value="">Seleccione un destino</option>
-                        <option value="Ciudad de México">Ciudad de México</option>
-                        <option value="Guadalajara">Guadalajara</option>
-                        <option value="Monterrey">Monterrey</option>
-                        <option value="Puebla">Puebla</option>
-                        <option value="Querétaro">Querétaro</option>
+                    <label for="id_estado_destino">Estado Destino:</label>
+                    <select id="id_estado_destino" name="id_estado_destino" onchange="actualizarAsuntoCorto()" required>
+                        <option value="">Seleccione un estado</option>
+                        <?php foreach ($estados as $estado): ?>
+                            <?php if ($estado['id_estado'] != 0 && $estado['id_estado'] != 88 && $estado['id_estado'] != 99): ?>
+                                <option value="<?php echo $estado['id_estado']; ?>">
+                                    <?php echo $estado['nombre_estado']; ?>
+                                </option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="asunto_corto">Asunto:</label>
-                    <input type="text" id="asunto_corto" name="asunto_corto">
+                    <label for="municipio_destino">Municipio Destino:</label>
+                    <input type="text" id="municipio_destino" name="municipio_destino" placeholder="Ingrese el municipio de destino">
+                </div>
+                <div class="form-group">
+                    <label for="asunto_corto">Asunto Corto:</label>
+                    <input type="text" id="asunto_corto" name="asunto_corto" readonly>
                 </div>
                 <div class="form-group">
                     <label for="fecha_actual">Fecha Actual:</label>
-                    <input type="text" id="fecha_actual" name="fecha_actual" value="<?php echo date('d/m/y'); ?>"
+                    <input type="text" id="fecha_actual" name="fecha_actual" value="<?php echo date('d/m/Y'); ?>"
                         readonly>
                 </div>
                 <div class="form-group">
@@ -290,7 +314,7 @@ $conn->close();
                 </div>
                 <div class="form-group">
                     <label for="asunto">Con objeto de:</label>
-                    <textarea id="asunto" name="asunto" rows="4" required></textarea>
+                    <textarea id="asunto" name="asunto" rows="4" required placeholder="Describa el objetivo de la comisión..."></textarea>
                 </div>
             </div>
 
@@ -314,34 +338,38 @@ $conn->close();
                         <input type="radio" id="devengo" name="anticipo_devengo" value="2">
                         <label for="devengo">Devengo</label>
                     </div>
-
+                </div>
             </div>
 
+            <!-- Opciones Adicionales -->
+            <div class="form-section">
+                <h2>Opciones Adicionales</h2>
+                
                 <div class="checkbox-group">
                     <input type="checkbox" id="aplica_alimentos" name="aplica_alimentos"
                         onchange="toggleTablaAlimentos()">
                     <label for="aplica_alimentos">Aplica alimentos</label>
-                    <div id="tabla_alimentos" class="tabla-adicional" style="display: none;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tarifa</th>
-                                    <th>Días</th>
-                                    <th>Cuota Diaria</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input type="number" id="tarifa" name="tarifa" step="0.01" min="0" placeholder="0">
-                                </td>
-                                <td><input type="number" id="dias" name="dias" min="0" placeholder="0" disabled></td>
-                                <td><input type="number" id="cuota" name="cuota" step="0.01" min="0" placeholder="0.00"
-                                disabled></td>
+                </div>
+                
+                <div id="tabla_alimentos" class="tabla-adicional" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tarifa</th>
+                                <th>Días</th>
+                                <th>Cuota Diaria</th>
+                                <th>Subtotal</th>
                             </tr>
-                        </div>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="number" id="tarifa" name="tarifa" step="0.01" min="0" placeholder="0.00" disabled onchange="calcularSubtotalAlimentos()"></td>
+                                <td><input type="number" id="dias" name="dias" min="0" placeholder="0" disabled onchange="calcularSubtotalAlimentos()"></td>
+                                <td><input type="number" id="cuota" name="cuota" step="0.01" min="0" placeholder="0.00" disabled onchange="calcularSubtotalAlimentos()"></td>
+                                <td><input type="number" id="subtotal_alimentos" name="subtotal_alimentos" step="0.01" min="0" placeholder="0.00" readonly></td>
+                            </tr>
                         </tbody>
                     </table>
-                    </div>
                 </div>
 
                 <div class="checkbox-group">
@@ -349,28 +377,30 @@ $conn->close();
                         onchange="toggleTablaFueraEstado()">
                     <label for="comision_fuera_estado">Comisión fuera del estado</label>
                 </div>
+                
                 <div id="tabla_fuera_estado" class="tabla-adicional" style="display: none;">
                     <table>
                         <thead>
                             <tr>
-                                <th>Partida 3710</th>
-                                <th>Partida 3720</th>
+                                <th>Partida 3710 (Pasajes Aéreos)</th>
+                                <th>Partida 3720 (Pasajes Terrestres)</th>
                                 <th>Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><input type="number" id="partida_3710" name="partida_3710" step="0.01" min="0"
-                                        disabled onchange="calcularTotal()"></td>
-                                <td><input type="number" id="partida_3720" name="partida_3720" step="0.01" min="0"
-                                        disabled onchange="calcularTotal()"></td>
-                                <td><input type="number" id="partida_total" name="partida_total" step="0.01" min="0"
-                                        disabled placeholder="0.00"></td>
+                                <td><input type="number" id="partida_3710" name="partida_3710" step="0.01" min="0" placeholder="0.00" disabled onchange="calcularTotal()"></td>
+                                <td><input type="number" id="partida_3720" name="partida_3720" step="0.01" min="0" placeholder="0.00" disabled onchange="calcularTotal()"></td>
+                                <td><input type="number" id="partida_total" name="partida_total" step="0.01" min="0" placeholder="0.00" readonly></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <!-- Campo oculto para municipio -->
+            <input type="hidden" id="id_municipio" name="id_municipio" value="">
+            <input type="hidden" id="id_usuario_registro" name="id_usuario_registro" value="1">
 
             <!-- Botones de Acción -->
             <div class="form-actions">
@@ -394,6 +424,9 @@ $conn->close();
                 document.getElementById('departamento').value = selectedOption.getAttribute('data-estructura');
                 document.getElementById('direccion_departamento').value = obtenerDireccionDepartamento(selectedOption.getAttribute('data-estructura'));
                 document.getElementById('id_estructura_departamento_fk').value = selectedOption.getAttribute('data-estructura-id');
+                
+                // Actualizar asunto corto si ya hay destino seleccionado
+                actualizarAsuntoCorto();
             } else {
                 // Limpiar campos si no hay selección
                 document.getElementById('clave_puesto').value = '';
@@ -402,13 +435,14 @@ $conn->close();
                 document.getElementById('departamento').value = '';
                 document.getElementById('direccion_departamento').value = '';
                 document.getElementById('id_estructura_departamento_fk').value = '';
+                document.getElementById('asunto_corto').value = '';
             }
         }
 
         // Función para determinar la dirección del departamento
         function obtenerDireccionDepartamento(estructura) {
             if (estructura.includes('Direccion General')) {
-                return 'Dirección General';
+                return 'Dirección General de Planeación';
             } else if (estructura.includes('Direccion de Tecnologias')) {
                 return 'Dirección de Tecnologías de la Información y Comunicaciones';
             } else if (estructura.includes('Soporte Tecnico')) {
@@ -421,10 +455,32 @@ $conn->close();
 
         // Función para actualizar el asunto corto basado en el destino
         function actualizarAsuntoCorto() {
-            const destino = document.getElementById('destino').value;
+            const estadoSelect = document.getElementById('id_estado_destino');
+            const municipioInput = document.getElementById('municipio_destino');
             const empleadoSelect = document.getElementById('id_empleado_fk');
             const empleadoNombre = empleadoSelect.options[empleadoSelect.selectedIndex].text;
+            const estadoNombre = estadoSelect.options[estadoSelect.selectedIndex].text;
+            const municipio = municipioInput.value;
+            
+            if (estadoSelect.value && empleadoSelect.value) {
+                let destino = estadoNombre;
+                if (municipio) {
+                    destino = municipio + ', ' + estadoNombre;
+                }
+                document.getElementById('asunto_corto').value = `Comisión de ${empleadoNombre} a ${destino}`;
+            } else if (estadoSelect.value) {
+                let destino = estadoNombre;
+                if (municipio) {
+                    destino = municipio + ', ' + estadoNombre;
+                }
+                document.getElementById('asunto_corto').value = `Comisión a ${destino}`;
+            } else {
+                document.getElementById('asunto_corto').value = '';
+            }
         }
+
+        // Actualizar asunto corto cuando cambia el municipio
+        document.getElementById('municipio_destino').addEventListener('input', actualizarAsuntoCorto);
 
         // Función para mostrar/ocultar la tabla de alimentos
         function toggleTablaAlimentos() {
@@ -434,13 +490,20 @@ $conn->close();
 
             if (checkbox.checked) {
                 tabla.style.display = 'block';
-                inputs.forEach(input => input.disabled = false);
+                inputs.forEach(input => {
+                    if (input.id !== 'subtotal_alimentos') {
+                        input.disabled = false;
+                    }
+                });
             } else {
                 tabla.style.display = 'none';
                 inputs.forEach(input => {
-                    input.disabled = true;
-                    input.value = '';
+                    if (input.id !== 'subtotal_alimentos') {
+                        input.disabled = true;
+                        input.value = '';
+                    }
                 });
+                document.getElementById('subtotal_alimentos').value = '';
             }
         }
 
@@ -452,14 +515,30 @@ $conn->close();
 
             if (checkbox.checked) {
                 tabla.style.display = 'block';
-                inputs.forEach(input => input.disabled = false);
+                inputs.forEach(input => {
+                    if (input.id !== 'partida_total') {
+                        input.disabled = false;
+                    }
+                });
             } else {
                 tabla.style.display = 'none';
                 inputs.forEach(input => {
-                    input.disabled = true;
-                    input.value = '';
+                    if (input.id !== 'partida_total') {
+                        input.disabled = true;
+                        input.value = '';
+                    }
                 });
+                document.getElementById('partida_total').value = '';
             }
+        }
+
+        // Función para calcular el subtotal de alimentos
+        function calcularSubtotalAlimentos() {
+            const tarifa = parseFloat(document.getElementById('tarifa').value) || 0;
+            const dias = parseFloat(document.getElementById('dias').value) || 0;
+            const cuota = parseFloat(document.getElementById('cuota').value) || 0;
+            const subtotal = tarifa * dias * cuota;
+            document.getElementById('subtotal_alimentos').value = subtotal.toFixed(2);
         }
 
         // Función para calcular el total de partidas
@@ -478,22 +557,34 @@ $conn->close();
 
             // Deshabilitar inputs de tablas
             const inputsAlimentos = document.querySelectorAll('#tabla_alimentos input');
-            inputsAlimentos.forEach(input => input.disabled = true);
+            inputsAlimentos.forEach(input => {
+                if (input.id !== 'subtotal_alimentos') {
+                    input.disabled = true;
+                }
+            });
 
             const inputsFueraEstado = document.querySelectorAll('#tabla_fuera_estado input');
-            inputsFueraEstado.forEach(input => input.disabled = true);
+            inputsFueraEstado.forEach(input => {
+                if (input.id !== 'partida_total') {
+                    input.disabled = true;
+                }
+            });
 
             // Restaurar fecha actual
-            document.getElementById('fecha_actual').value = '<?php echo date('d/m'); ?>';
+            document.getElementById('fecha_actual').value = '<?php echo date('d/m/Y'); ?>';
+            
+            // Limpiar asunto corto
+            document.getElementById('asunto_corto').value = '';
         }
 
         // Validar que la fecha de fin no sea anterior a la fecha de inicio
         document.getElementById('fecha_inicio').addEventListener('change', function () {
             const fechaInicio = new Date(this.value);
-            const fechaFin = new Date(document.getElementById('fecha_fin').value);
+            const fechaFinInput = document.getElementById('fecha_fin');
+            const fechaFin = new Date(fechaFinInput.value);
 
-            if (fechaFin < fechaInicio) {
-                document.getElementById('fecha_fin').value = '';
+            if (fechaFinInput.value && fechaFin < fechaInicio) {
+                fechaFinInput.value = '';
                 alert('La fecha de fin no puede ser anterior a la fecha de inicio');
             }
         });
@@ -506,6 +597,11 @@ $conn->close();
                 this.value = '';
                 alert('La fecha de fin no puede ser anterior a la fecha de inicio');
             }
+        });
+
+        // Inicializar el formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            resetForm();
         });
     </script>
 </body>
