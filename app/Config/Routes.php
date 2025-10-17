@@ -1,19 +1,41 @@
 <?php
 
-use App\Controllers\ComisionController;
-use App\Controllers\AuthController;
+use CodeIgniter\Router\RouteCollection;
 
-// Rutas de autenticación
-$routes->get('/', [AuthController::class, 'login']);
-$routes->get('/login', [AuthController::class, 'login']);
-$routes->post('/auth/login', [AuthController::class, 'processLogin']);
-$routes->get('/logout', [AuthController::class, 'logout']);
+/**
+ * @var RouteCollection $routes
+ */
+$routes->setAutoRoute(false);
+$routes->get('/', 'Login::index');
+$routes->post('Login/validar_usuario', 'Login::validar_usuario');
+$routes->get('Inicio', 'Comisiones::index');
+$routes->get('Comisiones', 'Comisiones::index');
+$routes->get('Login/cerrar','Login::cerrar');
+$routes->get('Catalogos/listado_estructura','Catalogos::listado_estructura');
+$routes->post('Catalogos/getEstructura', 'Catalogos::getEstructura');
+$routes->get('Comisiones/agregar', 'Comisiones::agregar');
+$routes->post('Comisiones/guardar', 'Comisiones::guardar');
+$routes->post('getComisiones', 'Comisiones::getComisiones');
+$routes->get('Comisiones/exportar_csv/(:num)', 'Comisiones::exportar_csv/$1');
+$routes->get('Comisiones/exportar_csv', 'Comisiones::exportar_csv');
+$routes->post('getcomision', 'Getcomision::index');
+$routes->get('Comisiones/exportar_csv/(:num)', 'Comisiones::exportar_csv/$1');
+$routes->get('index.php', 'Comisiones::index');
 
-// Rutas de comisiones
-$routes->group('comision', function($routes) {
-    $routes->get('/', [ComisionController::class, 'index']); // Lista principal
-    $routes->get('crear', [ComisionController::class, 'crear']);
-    $routes->post('guardar', [ComisionController::class, 'guardar']);
-    $routes->get('getEmpleadoData/(:num)', [ComisionController::class, 'getEmpleadoData']);
-    $routes->get('getMunicipioData/(:num)', [ComisionController::class, 'getMunicipioData']);
-});
+
+/* $routes->get('Agregar/(:any)','Forms::index/$1',['filter' => 'perfil:1,3']);
+$routes->get('Agregar/','Forms::index',['filter' => 'perfil:1,3']);
+$routes->post('/forms/municipios', 'Forms::getMunicipiosByEstado');
+$routes->post('forms/estados', 'Forms::getEstadosByPais');
+$routes->post('forms/guardarFolio', 'Forms::guardarFolio');
+$routes->post('principal/getFolios', 'Principal::getFolios');
+$routes->post('forms/deleteSolicitud', 'Forms::eliminarSolicitud');
+$routes->post('forms/getSolicitud', 'Forms::getSolicitud');
+$routes->get('catalogos/servidor','Catalogos::index',['filter' => 'perfil:1,3']);
+$routes->get('catalogos/dependencia','Catalogos::dependencia',['filter' => 'perfil:1,3']);
+$routes->post('getServidoresPublicos', 'Catalogos::getServidoresPublicos');
+$routes->post('catalogos/guardaServidor', 'Catalogos::guardaServidor');
+$routes->post('eliminarServidor', 'Catalogos::eliminarServidor',['filter' => 'perfil:1']);
+$routes->post('getDependencias', 'Catalogos::getDependencias');
+$routes->post('eliminarDependencia', 'Catalogos::eliminarDependencia',['filter' => 'perfil:1']);
+$routes->post('catalogos/guardaDependencia', 'Catalogos::guardaDependencia'); */
