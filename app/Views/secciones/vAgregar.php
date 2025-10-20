@@ -46,7 +46,6 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario de Comisión</title>
     <link rel="stylesheet" href="style.css">
-    
 </head>
 
 <body>
@@ -326,7 +325,7 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
                 <h2>Información del Empleado</h2>
                 <div class="form-group">
                     <label for="id_empleado_fk">Nombre:</label>
-                    <select id="id_empleado_fk" name="id_empleado_fk" onchange="cargarDatosEmpleado()" required>
+                    <select id="id_empleado_fk" name="id_empleado_fk" required>
                         <option value="">Seleccione un empleado</option>
                         <?php foreach ($empleados as $empleado): ?>
                             <?php
@@ -383,7 +382,7 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
                 </div>
                 <div class="form-group">
                     <label for="id_municipio">Municipio Destino:</label>
-                    <select id="id_municipio" name="id_municipio" onchange="cargarEstado()" required>
+                    <select id="id_municipio" name="id_municipio" required>
                         <option value="">Seleccione un municipio</option>
                         <?php foreach ($municipios as $municipio): ?>
                             <option value="<?php echo $municipio['id_municipio']; ?>"
@@ -439,8 +438,7 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
                 </div>
 
                 <div class="checkbox-group">
-                    <input type="checkbox" id="aplica_alimentos" name="aplica_alimentos"
-                        onchange="toggleTablaAlimentos()">
+                    <input type="checkbox" id="aplica_alimentos" name="aplica_alimentos">
                     <label for="aplica_alimentos">Aplica alimentos</label>
                 </div>
 
@@ -457,11 +455,10 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
                         <tbody>
                             <tr>
                                 <td><input type="number" id="tarifa" name="tarifa" step="0.01" min="0"
-                                        placeholder="0.00" disabled onchange="calcularSubtotalAlimentos()"></td>
-                                <td><input type="number" id="dias" name="dias" min="0" placeholder="0" disabled
-                                        onchange="calcularSubtotalAlimentos()"></td>
+                                        placeholder="0.00" disabled></td>
+                                <td><input type="number" id="dias" name="dias" min="0" placeholder="0" disabled></td>
                                 <td><input type="number" id="cuota" name="cuota" step="0.01" min="0" placeholder="0.00"
-                                        disabled onchange="calcularSubtotalAlimentos()"></td>
+                                        disabled></td>
                                 <td><input type="number" id="subtotal_alimentos" name="subtotal_alimentos" step="0.01"
                                         min="0" placeholder="0.00" readonly></td>
                             </tr>
@@ -470,8 +467,7 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
                 </div>
 
                 <div class="checkbox-group">
-                    <input type="checkbox" id="comision_fuera_estado" name="comision_fuera_estado"
-                        onchange="toggleTablaFueraEstado()">
+                    <input type="checkbox" id="comision_fuera_estado" name="comision_fuera_estado">
                     <label for="comision_fuera_estado">Comisión fuera del estado</label>
                 </div>
 
@@ -487,9 +483,9 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
                         <tbody>
                             <tr>
                                 <td><input type="number" id="partida_3710" name="partida_3710" step="0.01" min="0"
-                                        placeholder="0.00" disabled onchange="calcularTotal()"></td>
+                                        placeholder="0.00" disabled></td>
                                 <td><input type="number" id="partida_3720" name="partida_3720" step="0.01" min="0"
-                                        placeholder="0.00" disabled onchange="calcularTotal()"></td>
+                                        placeholder="0.00" disabled></td>
                                 <td><input type="number" id="partida_total" name="partida_total" step="0.01" min="0"
                                         placeholder="0.00" readonly></td>
                             </tr>
@@ -505,208 +501,14 @@ $tipos_contrato = $db->query("SELECT id_tipo_contrato, dsc_tipo_contrato FROM ca
             <!-- Botones de Acción -->
             <div class="form-actions">
                 <button type="submit" class="btn-submit">Enviar Formulario</button>
-                <button type="reset" class="btn-reset" onclick="resetForm()">Restablecer Formulario</button>
+                <button type="reset" class="btn-reset" onclick="sigemed.comision.resetForm()">Restablecer
+                    Formulario</button>
                 <a href="<?php echo base_url('index.php'); ?>" class="btn-cancel">Cancelar</a>
             </div>
         </form>
     </div>
 
-    <script>
-        // Función para cargar datos del empleado seleccionado
-        function cargarDatosEmpleado() {
-            const select = document.getElementById('id_empleado_fk');
-            const selectedOption = select.options[select.selectedIndex];
-
-            if (selectedOption.value) {
-                document.getElementById('denominacion_puesto').value = selectedOption.getAttribute('data-puesto');
-                document.getElementById('clave_puesto').value = 'CP' + selectedOption.getAttribute('data-puesto-id').toString().padStart(3, '0');
-                document.getElementById('tipo_contratacion').value = selectedOption.getAttribute('data-contrato');
-                document.getElementById('departamento').value = selectedOption.getAttribute('data-estructura');
-                document.getElementById('direccion_departamento').value = obtenerDireccionDepartamento(selectedOption.getAttribute('data-estructura'));
-                document.getElementById('id_estructura_departamento_fk').value = selectedOption.getAttribute('data-estructura-id');
-                actualizarAsuntoCorto();
-            } else {
-                // Limpiar campos si no hay selección
-                document.getElementById('clave_puesto').value = '';
-                document.getElementById('denominacion_puesto').value = '';
-                document.getElementById('tipo_contratacion').value = '';
-                document.getElementById('departamento').value = '';
-                document.getElementById('direccion_departamento').value = '';
-                document.getElementById('id_estructura_departamento_fk').value = '';
-                document.getElementById('asunto_corto').value = '';
-            }
-        }
-
-        // Función para determinar la dirección del departamento
-        function obtenerDireccionDepartamento(estructura) {
-            if (estructura.includes('Direccion General')) {
-                return 'Dirección General de Planeación';
-            } else if (estructura.includes('Direccion de Tecnologias')) {
-                return 'Dirección de Tecnologías de la Información y Comunicaciones';
-            } else if (estructura.includes('Soporte Tecnico')) {
-                return 'Departamento de Soporte Técnico y Comunicaciones';
-            } else if (estructura.includes('Desarrollo de Sistemas')) {
-                return 'Departamento de Desarrollo de Sistemas Web';
-            }
-            return estructura;
-        }
-
-        function cargarEstado() {
-            const municipioSelect = document.getElementById('id_municipio');
-            const selectedOption = municipioSelect.options[municipioSelect.selectedIndex];
-            const estadoInput = document.getElementById('estado_destino');
-
-            if (selectedOption.value) {
-                estadoInput.value = selectedOption.getAttribute('data-estado');
-            } else {
-                estadoInput.value = '';
-            }
-
-            actualizarAsuntoCorto();
-        }
-
-        // Función para actualizar el asunto corto basado en el destino
-        function actualizarAsuntoCorto() {
-            const municipioSelect = document.getElementById('id_municipio');
-            const empleadoSelect = document.getElementById('id_empleado_fk');
-
-            if (empleadoSelect.value && municipioSelect.value) {
-                const empleadoNombre = empleadoSelect.options[empleadoSelect.selectedIndex].text;
-                const municipioNombre = municipioSelect.options[municipioSelect.selectedIndex].text;
-                const estadoNombre = document.getElementById('estado_destino').value;
-
-                // Generar asunto corto automático
-                let asuntoCorto = `Comisión de ${empleadoNombre} a ${estadoNombre}, ${municipioNombre}`;
-
-                document.getElementById('asunto_corto').value = asuntoCorto;
-            }
-        }
-
-        // Función para mostrar/ocultar la tabla de alimentos
-        function toggleTablaAlimentos() {
-            const tabla = document.getElementById('tabla_alimentos');
-            const checkbox = document.getElementById('aplica_alimentos');
-            const inputs = tabla.querySelectorAll('input');
-
-            if (checkbox.checked) {
-                tabla.style.display = 'block';
-                inputs.forEach(input => {
-                    if (input.id !== 'subtotal_alimentos') {
-                        input.disabled = false;
-                    }
-                });
-            } else {
-                tabla.style.display = 'none';
-                inputs.forEach(input => {
-                    if (input.id !== 'subtotal_alimentos') {
-                        input.disabled = true;
-                        input.value = '';
-                    }
-                });
-                document.getElementById('subtotal_alimentos').value = '';
-            }
-        }
-
-        // Función para mostrar/ocultar la tabla de comisión fuera del estado
-        function toggleTablaFueraEstado() {
-            const tabla = document.getElementById('tabla_fuera_estado');
-            const checkbox = document.getElementById('comision_fuera_estado');
-            const inputs = tabla.querySelectorAll('input');
-
-            if (checkbox.checked) {
-                tabla.style.display = 'block';
-                inputs.forEach(input => {
-                    if (input.id !== 'partida_total') {
-                        input.disabled = false;
-                    }
-                });
-            } else {
-                tabla.style.display = 'none';
-                inputs.forEach(input => {
-                    if (input.id !== 'partida_total') {
-                        input.disabled = true;
-                        input.value = '';
-                    }
-                });
-                document.getElementById('partida_total').value = '';
-            }
-        }
-
-        // Función para calcular el subtotal de alimentos
-        function calcularSubtotalAlimentos() {
-            const tarifa = parseFloat(document.getElementById('tarifa').value) || 0;
-            const dias = parseFloat(document.getElementById('dias').value) || 0;
-            const cuota = parseFloat(document.getElementById('cuota').value) || 0;
-            const subtotal = tarifa * dias * cuota;
-            document.getElementById('subtotal_alimentos').value = subtotal.toFixed(2);
-        }
-
-        // Función para calcular el total de partidas
-        function calcularTotal() {
-            const partida3710 = parseFloat(document.getElementById('partida_3710').value) || 0;
-            const partida3720 = parseFloat(document.getElementById('partida_3720').value) || 0;
-            const total = partida3710 + partida3720;
-            document.getElementById('partida_total').value = total.toFixed(2);
-        }
-
-        // Función para resetear completamente el formulario
-        function resetForm() {
-            document.getElementById('comisionForm').reset();
-            document.getElementById('tabla_alimentos').style.display = 'none';
-            document.getElementById('tabla_fuera_estado').style.display = 'none';
-
-            // Deshabilitar inputs de tablas
-            const inputsAlimentos = document.querySelectorAll('#tabla_alimentos input');
-            inputsAlimentos.forEach(input => {
-                if (input.id !== 'subtotal_alimentos') {
-                    input.disabled = true;
-                }
-            });
-
-            const inputsFueraEstado = document.querySelectorAll('#tabla_fuera_estado input');
-            inputsFueraEstado.forEach(input => {
-                if (input.id !== 'partida_total') {
-                    input.disabled = true;
-                }
-            });
-
-            // Restaurar fecha actual
-            document.getElementById('fecha_actual').value = '<?php echo date('d/m/Y'); ?>';
-
-            // Limpiar asunto corto
-            document.getElementById('asunto_corto').value = '';
-        }
-
-        // Validar que la fecha de fin no sea anterior a la fecha de inicio
-        document.getElementById('fecha_inicio').addEventListener('change', function () {
-            const fechaInicio = new Date(this.value);
-            const fechaFinInput = document.getElementById('fecha_fin');
-            const fechaFin = new Date(fechaFinInput.value);
-
-            if (fechaFinInput.value && fechaFin < fechaInicio) {
-                fechaFinInput.value = '';
-                alert('La fecha de fin no puede ser anterior a la fecha de inicio');
-            }
-        });
-
-        document.getElementById('fecha_fin').addEventListener('change', function () {
-            const fechaInicio = new Date(document.getElementById('fecha_inicio').value);
-            const fechaFin = new Date(this.value);
-
-            if (fechaFin < fechaInicio) {
-                this.value = '';
-                alert('La fecha de fin no puede ser anterior a la fecha de inicio');
-            }
-        });
-
-        // Inicializar el formulario
-        document.addEventListener('DOMContentLoaded', function () {
-            resetForm();
-
-            // Actualizar asunto corto cuando cambie el municipio
-            document.getElementById('municipio_destino').addEventListener('input', actualizarAsuntoCorto);
-        });
-    </script>
+    <script src="<?php echo base_url('assets/js/comision.js'); ?>"></script>
 </body>
 
 </html>
